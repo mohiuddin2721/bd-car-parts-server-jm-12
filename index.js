@@ -19,7 +19,9 @@ async function run() {
         await client.connect();
         const partsCollection = client.db("car_parts").collection("parts");
         const ordersCollection = client.db("car_parts").collection("orders");
+        const reviewsCollection = client.db("car_parts").collection("reviews");
 
+        // get parts
         app.get('/parts', async (req, res) => {
             const query = {};
             const cursor = partsCollection.find(query);
@@ -27,6 +29,7 @@ async function run() {
             res.send(parts);
         });
 
+        // get parts by id
         app.get('/parts/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: ObjectId(id) };
@@ -41,12 +44,20 @@ async function run() {
             res.send(result);
         });
 
-        // Get my orders
+        // Get my orders by email
         app.get('/orders', async (req, res) => {
             const email = req.query.email;
             const query = { email: email }
             const myOrders = await ordersCollection.find(query).toArray();
             res.send(myOrders);
+        });
+
+        // get reviews
+        app.get('/reviews', async (req, res) => {
+            const query = {}
+            const cursor = reviewsCollection.find(query);
+            const reviews = await cursor.toArray();
+            res.send(reviews);
         })
 
     }
