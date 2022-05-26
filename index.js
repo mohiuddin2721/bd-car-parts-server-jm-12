@@ -20,6 +20,7 @@ async function run() {
         const partsCollection = client.db("car_parts").collection("parts");
         const ordersCollection = client.db("car_parts").collection("orders");
         const reviewsCollection = client.db("car_parts").collection("reviews");
+        const profileCollection = client.db("car_parts").collection("profile");
 
         // get parts
         app.get('/parts', async (req, res) => {
@@ -64,6 +65,13 @@ async function run() {
         app.post('/reviews', async (req, res) => {
             const review = req.body;
             const result = await reviewsCollection.insertOne(review);
+            res.send(result);
+        });
+
+        // post profile
+        app.post('/profile', async (req, res) => {
+            const profile = req.body;
+            const result = await profileCollection.insertOne(profile);
             res.send(result);
         });
 
