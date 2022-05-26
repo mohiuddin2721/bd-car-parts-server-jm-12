@@ -71,8 +71,8 @@ async function run() {
                 const myOrders = await ordersCollection.find(query).toArray();
                 res.send(myOrders);
             }
-            else{
-                return res.status(403).send({message: 'Forbidden access'})
+            else {
+                return res.status(403).send({ message: 'Forbidden access' })
             }
         });
 
@@ -112,8 +112,26 @@ async function run() {
             res.send({ result, token });
         });
 
-        // get users for make admin page
-        app.get('/user', async (req, res) => {
+        // put user to make-admin
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const requester = req.decoded.email;
+            const requesterAccount = await usersCollection.findOne({ email: requester });
+            if (requesterAccount.role === 'admin') {
+                const filter = { email: email };
+                const updateDoc = {
+                    $set: { role: 'admin' },
+                };
+                const result = await usersCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            }
+            else{
+                res.status(403).send({message: 'forbidden'})
+            }
+        });
+
+        // get all users for admin-page
+        app.get('/user', verifyJWT, async (req, res) => {
             const users = await usersCollection.find().toArray();
             res.send(users);
         })
