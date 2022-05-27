@@ -98,11 +98,31 @@ async function run() {
             res.send(result);
         });
 
-        // post profile
-        app.post('/profile', async (req, res) => {
+        // put my profile
+        app.put('/profile/:email', async (req, res) => {
+            const email = req.params.email;
             const profile = req.body;
-            const result = await profileCollection.insertOne(profile);
+            const filter = { email: email };
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: profile,
+            };
+            const result = await profileCollection.updateOne(filter, updateDoc, options);
             res.send(result);
+        });
+
+        // get myProfile by query
+        app.get('/profile', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const decodedEmail = req.decoded.email;
+            if (email === decodedEmail) {
+                const query = { email: email }
+                const profile = await profileCollection.find(query).toArray();
+                res.send(profile);
+            }
+            else {
+                return res.status(403).send({ message: 'Forbidden access' })
+            }
         });
 
         // put signUp user
