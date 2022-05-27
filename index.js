@@ -55,6 +55,13 @@ async function run() {
             res.send(result);
         });
 
+        // post parts for addProduct
+        app.post('/parts', verifyJWT, async (req, res) => {
+            const product = req.body;
+            const result = await partsCollection.insertOne(product);
+            res.send(result);
+        })
+
         // Post Orders
         app.post('/orders', async (req, res) => {
             const orders = req.body;
