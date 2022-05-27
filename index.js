@@ -59,6 +59,12 @@ async function run() {
             res.send(parts);
         });
 
+        // get parts for admin >>>>>>>>>>>
+        app.get('/parts', verifyJWT, verifyAdmin, async(req, res) => {
+            const parts = await partsCollection.find().toArray();
+            res.send(parts);
+        })
+
         // get parts by id
         app.get('/parts/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
