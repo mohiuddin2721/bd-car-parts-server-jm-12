@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const app = express();
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const port = process.env.PORT || 5000;
 
 app.use(cors());
@@ -38,6 +39,7 @@ async function run() {
         const reviewsCollection = client.db("car_parts").collection("reviews");
         const profileCollection = client.db("car_parts").collection("profile");
         const usersCollection = client.db("car_parts").collection("users");
+        const paymentsCollection = client.db("car_parts").collection("payments");
 
         // verify admin middle
         const verifyAdmin = async (req, res, next) => {
@@ -81,6 +83,19 @@ async function run() {
             res.send(result);
         });
 
+        // post for payment stripe
+        app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+            const order = req.body;
+            const price = order.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({clientSecret: paymentIntent.client_secret})
+        })
+
         // post parts for addProduct
         app.post('/parts', verifyJWT, verifyAdmin, async (req, res) => {
             const product = req.body;
@@ -110,11 +125,27 @@ async function run() {
         });
 
         // get order by id for myOrder page
-        app.get('/orders/:id', verifyJWT, async(req, res) => {
+        app.get('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
-            const query = {_id: ObjectId(id)}
+            const query = { _id: ObjectId(id) }
             const order = await ordersCollection.findOne(query);
             res.send(order);
+        })
+
+        // patch payment paid
+        app.patch('/orders/:id', verifyJWT, async(req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = {_id: ObjectId(id)};
+            const updatedDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+            const updatePayment = await paymentsCollection.insertOne(payment);
+            const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
+            res.send(updatedOrder);
         })
 
         // get reviews
