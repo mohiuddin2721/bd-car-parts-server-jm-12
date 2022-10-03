@@ -132,6 +132,14 @@ async function run() {
             res.send(order);
         })
 
+        // delete orders for every users >>>>>>>>>>>
+        app.delete('/orders/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const selectedOrder = await ordersCollection.deleteOne(filter)
+            res.send(selectedOrder);
+        })
+
         // patch payment paid
         app.patch('/orders/:id', verifyJWT, async(req, res) => {
             const id = req.params.id;
