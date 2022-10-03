@@ -230,7 +230,18 @@ async function run() {
             };
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
+        });
 
+        // put user to make-user
+        app.put('/user/adminToUser/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'user' },
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
         });
 
         // get all users for admin-page
