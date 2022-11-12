@@ -250,6 +250,12 @@ async function run() {
             res.send(users);
         })
 
+        // get all orders for manage all orders
+        app.get('/allOrders', async(req, res) => {
+            const allOrders = await ordersCollection.find().toArray();
+            res.send(allOrders);
+        })
+
     }
     finally {
 
