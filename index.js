@@ -93,7 +93,7 @@ async function run() {
                 currency: 'usd',
                 payment_method_types: ['card']
             });
-            res.send({clientSecret: paymentIntent.client_secret})
+            res.send({ clientSecret: paymentIntent.client_secret })
         })
 
         // post parts for addProduct
@@ -141,10 +141,10 @@ async function run() {
         })
 
         // patch payment paid
-        app.patch('/orders/:id', verifyJWT, async(req, res) => {
+        app.patch('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const payment = req.body;
-            const filter = {_id: ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
             const updatedDoc = {
                 $set: {
                     paid: true,
@@ -251,9 +251,30 @@ async function run() {
         })
 
         // get all orders for manage all orders
-        app.get('/allOrders', async(req, res) => {
+        app.get('/allOrders', verifyJWT, verifyAdmin, async (req, res) => {
             const allOrders = await ordersCollection.find().toArray();
             res.send(allOrders);
+        })
+
+        // patch order shipped status
+        app.patch('/allOrdersShipped/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: 'Shipped',
+                }
+            }
+            const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
+            res.send(updatedOrder);
+        })
+
+        // delete orders for every users >>>>>>>>>>>
+        app.delete('/shippedOrders/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const selectedOrder = await ordersCollection.deleteOne(filter)
+            res.send(selectedOrder);
         })
 
     }
