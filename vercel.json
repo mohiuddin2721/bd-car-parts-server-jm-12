@@ -3,14 +3,22 @@
    "name": "bd-car-parts-server",
    "builds": [
       {
-         "src": "index.js",
+         "src": "./index.js",
          "use": "@vercel/node"
       }
    ],
    "routes": [
       {
          "src": "/(.*)",
-         "dest": "/index.js"
+         "dest": "/",
+         "methods": [
+            "GET",
+            "POST",
+            "PUT",
+            "PATCH",
+            "DELETE",
+            "OPTIONS"
+        ]
       }
    ]
 }
