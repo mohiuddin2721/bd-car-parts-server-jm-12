@@ -93,7 +93,7 @@ async function run() {
                 currency: 'usd',
                 payment_method_types: ['card']
             });
-            res.send({clientSecret: paymentIntent.client_secret})
+            res.send({ clientSecret: paymentIntent.client_secret })
         })
 
         // post parts for addProduct
@@ -132,11 +132,19 @@ async function run() {
             res.send(order);
         })
 
+        // delete orders for every users >>>>>>>>>>>
+        app.delete('/orders/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const selectedOrder = await ordersCollection.deleteOne(filter)
+            res.send(selectedOrder);
+        })
+
         // patch payment paid
-        app.patch('/orders/:id', verifyJWT, async(req, res) => {
+        app.patch('/orders/:id', verifyJWT, async (req, res) => {
             const id = req.params.id;
             const payment = req.body;
-            const filter = {_id: ObjectId(id)};
+            const filter = { _id: ObjectId(id) };
             const updatedDoc = {
                 $set: {
                     paid: true,
@@ -222,13 +230,51 @@ async function run() {
             };
             const result = await usersCollection.updateOne(filter, updateDoc);
             res.send(result);
+        });
 
+        // put user to make-user
+        app.put('/user/adminToUser/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            const email = req.params.email;
+
+            const filter = { email: email };
+            const updateDoc = {
+                $set: { role: 'user' },
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
         });
 
         // get all users for admin-page
         app.get('/user', verifyJWT, async (req, res) => {
             const users = await usersCollection.find().toArray();
             res.send(users);
+        })
+
+        // get all orders for manage all orders
+        app.get('/allOrders', verifyJWT, verifyAdmin, async (req, res) => {
+            const allOrders = await ordersCollection.find().toArray();
+            res.send(allOrders);
+        })
+
+        // patch order shipped status
+        app.patch('/allOrdersShipped/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const updatedDoc = {
+                $set: {
+                    status: 'Shipped',
+                }
+            }
+            const updatedOrder = await ordersCollection.updateOne(filter, updatedDoc);
+            res.send(updatedOrder);
+        })
+
+        // delete orders for every users >>>>>>>>>>>
+        app.delete('/shippedOrders/:id', verifyJWT, verifyAdmin, async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: ObjectId(id) };
+            const selectedOrder = await ordersCollection.deleteOne(filter)
+            res.send(selectedOrder);
         })
 
     }
